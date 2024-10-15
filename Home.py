@@ -1,7 +1,7 @@
 import streamlit as st
 from st_copy_to_clipboard import st_copy_to_clipboard
-import win32com.client as win32
-import pythoncom
+#import win32com.client as win32
+#import pythoncom
 
 # Configuração da página para modo wide
 st.set_page_config(
