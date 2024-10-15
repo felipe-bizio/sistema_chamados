@@ -1,4 +1,4 @@
 streamlit
 st_copy_to_clipboard
-pythoncom
+#pythoncom
 win32com.client
