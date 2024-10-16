@@ -1,7 +1,7 @@
+import smtplib
 import streamlit as st
 from st_copy_to_clipboard import st_copy_to_clipboard
-#import win32com.client as win32
-#import pythoncom
+from email.mime.text import MIMEText
 
 # Configuração da página para modo wide
 st.set_page_config(
@@ -12,19 +12,27 @@ st.set_page_config(
 st.logo('images/logo_siemens.png')
 #st.sidebar.caption('Powerd by: Streamlit  \n Created by: Felipe Bízio')
 
-# Função para enviar e-mail via Outlook
-def enviar_email(destinatario, assunto, corpo):
-    pythoncom.CoInitialize()  # Inicializa o componente COM
-    outlook = win32.Dispatch('outlook.application')
-    email = outlook.CreateItem(0)
-    
-    # Configurar e-mail
-    email.To = destinatario
-    email.Subject = assunto
-    email.Body = corpo
-    
-    # Enviar e-mail
-    email.Send()
+def enviar_email_gmail(remetente, destinatario, assunto, corpo, senha):
+    try:
+        # Configurar o conteúdo do e-mail
+        msg = MIMEText(corpo)
+        msg['From'] = remetente
+        msg['To'] = destinatario
+        msg['Subject'] = assunto
+
+        # Configurar o servidor SMTP do Gmail
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()
+        server.login(remetente, senha)
+
+        # Enviar o e-mail
+        server.sendmail(remetente, destinatario, msg.as_string())
+        server.quit()
+        
+        # Exibir mensagem de sucesso
+        st.success('E-mail enviado com sucesso! 🚀')
+    except Exception as e:
+        st.error(f'Erro ao enviar o e-mail: {e}')
 
 def limpar_dados():
     campos_padrao = {
@@ -236,7 +244,8 @@ with col3:
 As entregas e serviços discriminados neste documento estarão consideradas devidamente entregues e prestadas, formal e tacitamente, exceto se de outra forma expressado pelo cliente, por escrito e enviado a atendimentoaclientehealthcare.br.team@siemens-healthineers.com, em até 2 dias úteis contados desta data.
         """
         # Exibe o conteúdo do relatório
-        st.text_area("Relatório", value=conteudo, height=400) 
+        with st.expander("Preview do Relatório MS/MA"):
+            st.text_area("Relatório", value=conteudo, height=400) 
         # Botão de copiar para a área de transferência
         if st.button("📝 Copiar Conteúdo",type="secondary"):
             st.caption("Confirmar copia?")
@@ -246,32 +255,22 @@ As entregas e serviços discriminados neste documento estarão consideradas devi
                 limpar_dados()
                 st.success("Dados limpos com sucesso!")
        
-            
-    # Campo de e-mail e número de chamado
         st.divider()
-                # Interface Streamlit
-        st.title("Envio de E-mail via Outlook")
-        st.session_state.email = st.text_input("E-mail de pesquisa de satisfação", value=st.session_state.email)
-        st.session_state.numero_chamado = st.text_input("Número do chamado")
+        
+        with st.expander("Área Outlook (em desenvolvimento)"):
+    # Campo de e-mail e número de chamado
+            # Interface Streamlit
+            st.title("Envio de E-mail via Outlook")
+            # Capturando entradas via Streamlit
+            email_sender = st.text_input('De (Seu e-mail Gmail)')
+            email_receiver = st.text_input('Para (Destinatário)')
+            subject = st.text_input('Assunto')
+            body = st.text_area('Corpo do e-mail')
+            password = st.text_input('Senha (Sua senha Gmail)', type="password")
 
-
-        # Campos de input
-        destinatario = st.text_input("Destinatário",value = 'fw.bizio@gmail.com')
-        assunto = st.text_input("Assunto",value="Pesquisa de Satisfação")
-        corpo = st.text_area("Corpo do E-mail", value=f'Chamado: {st.session_state.numero_chamado} \n Contato: {st.session_state.email}')
-
-        # Botão para enviar o e-mail
-        if st.button("Enviar E-mail"):
-            if destinatario and assunto and corpo:
-                try:
-                    enviar_email(destinatario, assunto, corpo)
-                    st.success(f"E-mail enviado para {destinatario}")
-                except Exception as e:
-                    st.error(f"Ocorreu um erro ao enviar o e-mail: {str(e)}")
-            else:
-                st.error("Por favor, preencha todos os campos antes de enviar.")
-
-
+            # Botão para enviar o e-mail
+            if st.button('Enviar E-mail'):
+                enviar_email_gmail(email_sender, email_receiver, subject, body, password)
 with tab2:
     st.markdown("### Script Follow Up")
     col1, col3 = st.columns(2)
@@ -354,23 +353,27 @@ with tab2:
 ----- INFORMAÇÕES ADICIONAIS -----
 {st.session_state.infos_add}
 """
+        st.divider()
+        with st.expander("Preview do Relatório Follow Up"):
+            st.text_area("Relatório", value=conteudo_follow_up, height=400)
         if st.button("🧾 Copiar Conteúdo"):
             st.caption("Confirmar copia?")
             st_copy_to_clipboard(conteudo_follow_up, before_copy_label="📝 Deseja copiar conteúdo ?", after_copy_label="👍 Conteúdo copiado com sucesso",show_text=False)            
             # Botão para limpar dados da aba 2
         if st.button("❌ Limpar Dados Follow Up"):
             limpar_dados_aba2()
-        st.text_area("Relatório", value=conteudo_follow_up, height=400)
+        st.divider()
+
 
 
 with tab3:
     # Inicializando session state para armazenar dados das peças
     if 'pecas_mp' not in st.session_state:
-        st.session_state['pecas_mp'] = [{'peca': '', 'snm': '', 'batch_id': ''}]
+        st.session_state['pecas_mp'] = [{'peca': '', 'snm': '', 'batch_id_mp': ''}]
 
     # Função para adicionar um novo conjunto de campos de peça
     def adicionar_novo_campo_mp():
-        st.session_state['pecas_mp'].append({'peca': '', 'snm': '', 'batch_id': ''})
+        st.session_state['pecas_mp'].append({'peca': '', 'snm': '', 'batch_id_mp': ''})
 
     # Função para remover um campo de peça
     def remover_campo_mp(index):
@@ -399,7 +402,7 @@ with tab3:
         if st.session_state['pecas_consumidas_mp'] == "Sim":
             relatorio += "Peças consumidas:\n"
             for idx_mp, peca_mp in enumerate(st.session_state['pecas_mp']):
-                relatorio += f"Peça {idx_mp + 1}: {peca_mp['peca']}, SNM: {peca_mp['snm']}, Batch ID: {peca_mp['batch_id']}\n"
+                relatorio += f"Peça {idx_mp + 1}: {peca_mp['peca']}, SNM: {peca_mp['snm']}, Batch ID: {peca_mp['batch_id_mp']}\n"
         
         # 5) Observações
         relatorio += f"Observações / Assinatura: {st.session_state['observacao_assinatura_mp']}\n"
@@ -407,8 +410,8 @@ with tab3:
         return relatorio
 
     # Título do formulário
-    st.title("Formulário de Inspeção e Preventiva de Equipamento")
-    col1, col2 = st.columns([2,1])
+    st.markdown("### Script de Preventiva")
+    col1, col2 = st.columns(2)
     with col1:
         # 1) Condição do equipamento
         equipamento_condicao_mp = st.radio(
@@ -439,15 +442,15 @@ with tab3:
                 with col2_mp:
                     st.session_state['pecas_mp'][idx_mp]['snm'] = st.text_input(f"SNM {idx_mp + 1}:", key=f'snm_{idx_mp}')
                 with col3_mp:
-                    st.session_state['pecas_mp'][idx_mp]['batch_id'] = st.text_input(f"Batch ID {idx_mp + 1}:", key=f'batch_id_{idx_mp}')
+                    st.session_state['pecas_mp'][idx_mp]['batch_id_mp'] = st.text_input(f"Batch ID {idx_mp + 1}:", key=f'batch_id_mp_{idx_mp}')
                 with col4_mp:
-                    if st.button("Remover", key=f'remover_peca_{idx_mp}'):
+                    if st.button("Del", key=f'remover_peca_{idx_mp}'):
                         remover_campo_mp(idx_mp)
             
             # Botão para adicionar mais campos de peças
             if st.button("Adicionar nova peça"):
                 adicionar_novo_campo_mp()
-
+        st.divider()
     with col2:
         # 3) Inspeções e testes realizados (Agora utilizando radio buttons)
         st.subheader("Inspeções e Testes Realizados")
@@ -465,14 +468,25 @@ with tab3:
             "Testes finais"
         ]
 
-        # Criação de radios para cada item da lista
-        for teste_mp in testes_mp:
-            st.radio(f"{teste_mp}:", ["OK", "N OK", "N/A"], key=teste_mp,horizontal=True)
+        col1, col2, col3 = st.columns(3)
 
- 
+        # Distribuindo os testes entre as três colunas
+        for i, teste_mp in enumerate(testes_mp):
+            if i % 3 == 0:  # Testes com índice divisível por 3 na coluna 1
+                with col1:
+                    st.radio(f"{teste_mp}:", ["OK", "N OK", "N/A"], key=teste_mp, horizontal=True)
+            elif i % 3 == 1:  # Testes com índice que deixam resto 1 na coluna 2
+                with col2:
+                    st.radio(f"{teste_mp}:", ["OK", "N OK", "N/A"], key=teste_mp, horizontal=True)
+            else:  # Testes com índice que deixam resto 2 na coluna 3
+                with col3:
+                    st.radio(f"{teste_mp}:", ["OK", "N OK", "N/A"], key=teste_mp, horizontal=True)
 
-    # 5) Observações e assinatura
-    observacao_assinatura_mp = st.text_area("Observações / Assinatura:", key='observacao_assinatura_mp')
+        # 5) Observações e assinatura
+        observacao_assinatura_mp = st.text_area("Observações / Assinatura:", key='observacao_assinatura_mp')
+        st.divider()
+        with st.expander("Preview do Relatório de MP"):
+            st.text_area("Relatório", value=gerar_relatorio(), height=400)
 
-    # Botão para copiar o conteúdo para a área de transferência
-    st_copy_to_clipboard(gerar_relatorio(),before_copy_label="📝 Copiar Conteúdo", after_copy_label="👍 Conteúdo copiado com sucesso")
+        # Botão para copiar o conteúdo para a área de transferência
+        st_copy_to_clipboard(gerar_relatorio(),before_copy_label="📝 Copiar Conteúdo", after_copy_label="👍 Conteúdo copiado com sucesso")
