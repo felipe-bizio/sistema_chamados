@@ -1,4 +1,6 @@
 streamlit
 st_copy_to_clipboard
+smtplib
+email.mime.text
 #pythoncom
 #win32com.client
