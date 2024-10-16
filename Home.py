@@ -1,7 +1,7 @@
-import smtplib
+#import smtplib
 import streamlit as st
 from st_copy_to_clipboard import st_copy_to_clipboard
-from email.mime.text import MIMEText
+#from email.mime.text import MIMEText
 
 # Configuração da página para modo wide
 st.set_page_config(
@@ -258,7 +258,7 @@ As entregas e serviços discriminados neste documento estarão consideradas devi
         st.divider()
         
         with st.expander("Área Outlook (em desenvolvimento)"):
-    # Campo de e-mail e número de chamado
+            """# Campo de e-mail e número de chamado
             # Interface Streamlit
             st.title("Envio de E-mail via Outlook")
             # Capturando entradas via Streamlit
@@ -270,7 +270,7 @@ As entregas e serviços discriminados neste documento estarão consideradas devi
 
             # Botão para enviar o e-mail
             if st.button('Enviar E-mail'):
-                enviar_email_gmail(email_sender, email_receiver, subject, body, password)
+                enviar_email_gmail(email_sender, email_receiver, subject, body, password)"""
 with tab2:
     st.markdown("### Script Follow Up")
     col1, col3 = st.columns(2)
